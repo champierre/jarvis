@@ -9,6 +9,7 @@ class LocationTracker {
         this.currentPage = 1;
         this.recordsPerPage = 10;
         this.hasInitialSave = false;
+        this.hasReceivedFirstPosition = false;
         
         this.elements = {
             trackingStatus: document.getElementById('tracking-status'),
@@ -51,6 +52,12 @@ class LocationTracker {
                     // Auto-save every time we get a new position during tracking
                     if (this.geolocation.isTracking) {
                         this.saveCurrentLocation();
+                        
+                        // Save immediately on first position update after starting tracking
+                        if (!this.hasReceivedFirstPosition) {
+                            this.hasReceivedFirstPosition = true;
+                            console.log('First position received after starting tracking - saving immediately');
+                        }
                     }
                 },
                 onError: this.onGeolocationError.bind(this),
@@ -91,8 +98,19 @@ class LocationTracker {
             await this.geolocation.requestPermission();
             console.log('Geolocation permission granted');
             
+            // Reset first position flag for this tracking session
+            this.hasReceivedFirstPosition = false;
+            
             // Start geolocation tracking (callbacks already set in init)
             this.geolocation.startTracking();
+            
+            // Try to save current location immediately if we already have one
+            const currentPosition = this.geolocation.getLastPosition();
+            if (currentPosition) {
+                console.log('Saving existing position immediately on tracking start');
+                this.saveCurrentLocation();
+                this.hasReceivedFirstPosition = true;
+            }
             
             // Start automatic saving every 30 seconds as backup
             this.intervalId = setInterval(() => {
@@ -119,8 +137,9 @@ class LocationTracker {
             this.intervalId = null;
         }
 
-        // Reset initial save flag
+        // Reset flags
         this.hasInitialSave = false;
+        this.hasReceivedFirstPosition = false;
 
         this.elements.startBtn.disabled = false;
         this.elements.stopBtn.disabled = true;
