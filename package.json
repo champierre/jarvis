@@ -1,0 +1,34 @@
+{
+  "name": "location-tracker",
+  "version": "1.0.0",
+  "description": "位置情報を30秒ごとにIndexedDB + SQLiteで保存し続けるWebアプリ",
+  "main": "index.html",
+  "type": "module",
+  "scripts": {
+    "dev": "npx http-server . -p 3000 -o --cors",
+    "start": "npm run dev",
+    "build": "echo 'No build step needed for this static app'",
+    "preview": "npx http-server . -p 4173 -o --cors"
+  },
+  "keywords": [
+    "geolocation",
+    "sqlite",
+    "indexeddb",
+    "location-tracking",
+    "javascript",
+    "web-app"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/location-tracker.git"
+  },
+  "engines": {
+    "node": ">=14.0.0",
+    "npm": ">=6.0.0"
+  }
+}

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Location Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold text-center mb-8 text-gray-800">Location Tracker</h1>
+        
+        <!-- Status Display -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">現在の状態</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="flex items-center">
+                    <span class="font-medium mr-2">追跡状態:</span>
+                    <span id="tracking-status" class="text-red-500">停止中</span>
+                </div>
+                <div class="flex items-center">
+                    <span class="font-medium mr-2">最終更新:</span>
+                    <span id="last-update">未取得</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Current Location -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">現在位置</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <span class="font-medium">緯度:</span>
+                    <span id="current-lat">---</span>
+                </div>
+                <div>
+                    <span class="font-medium">経度:</span>
+                    <span id="current-lng">---</span>
+                </div>
+                <div>
+                    <span class="font-medium">精度:</span>
+                    <span id="current-accuracy">---</span>m
+                </div>
+                <div>
+                    <span class="font-medium">取得時刻:</span>
+                    <span id="current-timestamp">---</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Control Panel -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">操作パネル</h2>
+            <div class="flex flex-wrap gap-4">
+                <button id="start-btn" class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg transition duration-200">
+                    追跡開始
+                </button>
+                <button id="stop-btn" class="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg transition duration-200" disabled>
+                    追跡停止
+                </button>
+                <button id="clear-btn" class="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg transition duration-200">
+                    データクリア
+                </button>
+                <button id="export-btn" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition duration-200">
+                    データエクスポート
+                </button>
+            </div>
+        </div>
+
+        <!-- Statistics -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">統計情報</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-blue-600" id="total-records">0</div>
+                    <div class="text-sm text-gray-600">総記録数</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-green-600" id="first-record">---</div>
+                    <div class="text-sm text-gray-600">最初の記録</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-purple-600" id="last-record">---</div>
+                    <div class="text-sm text-gray-600">最新の記録</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Location History -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold mb-4">位置情報履歴</h2>
+            <div class="overflow-x-auto">
+                <table class="w-full table-auto">
+                    <thead>
+                        <tr class="bg-gray-50">
+                            <th class="px-4 py-2 text-left">時刻</th>
+                            <th class="px-4 py-2 text-left">緯度</th>
+                            <th class="px-4 py-2 text-left">経度</th>
+                            <th class="px-4 py-2 text-left">精度</th>
+                        </tr>
+                    </thead>
+                    <tbody id="location-history">
+                    </tbody>
+                </table>
+            </div>
+            <div class="mt-4 flex justify-between items-center">
+                <button id="prev-page" class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded">前のページ</button>
+                <span id="page-info" class="text-gray-600">ページ 1</span>
+                <button id="next-page" class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded">次のページ</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="js/app.js"></script>
+</body>
+</html>
