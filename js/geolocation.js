@@ -6,7 +6,7 @@ class GeolocationService {
         this.options = {
             enableHighAccuracy: true,
             timeout: 10000,
-            maximumAge: 0
+            maximumAge: 30000 // Allow cached position for up to 30 seconds
         };
         this.callbacks = {
             onLocationUpdate: null,

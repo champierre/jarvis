@@ -52,24 +52,34 @@ class Database {
     async saveLocation(latitude, longitude, accuracy) {
         await this.initPromise;
         
-        const stmt = this.db.prepare(`
-            INSERT INTO locations (latitude, longitude, accuracy, timestamp)
-            VALUES (?, ?, ?, ?)
-        `);
+        console.log('Database saveLocation called with:', { latitude, longitude, accuracy });
         
-        const timestamp = Date.now();
-        stmt.run([latitude, longitude, accuracy, timestamp]);
-        stmt.free();
-        
-        // Save to IndexedDB
-        await this.saveToIndexedDB();
-        
-        return {
-            latitude,
-            longitude,
-            accuracy,
-            timestamp
-        };
+        try {
+            const stmt = this.db.prepare(`
+                INSERT INTO locations (latitude, longitude, accuracy, timestamp)
+                VALUES (?, ?, ?, ?)
+            `);
+            
+            const timestamp = Date.now();
+            stmt.run([latitude, longitude, accuracy, timestamp]);
+            stmt.free();
+            
+            console.log('Location inserted into SQLite');
+            
+            // Save to IndexedDB
+            await this.saveToIndexedDB();
+            console.log('Database saved to IndexedDB');
+            
+            return {
+                latitude,
+                longitude,
+                accuracy,
+                timestamp
+            };
+        } catch (error) {
+            console.error('Error in saveLocation:', error);
+            throw error;
+        }
     }
 
     async getLocations(limit = 50, offset = 0) {

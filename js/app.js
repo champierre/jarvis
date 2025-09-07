@@ -8,6 +8,7 @@ class LocationTracker {
         this.intervalId = null;
         this.currentPage = 1;
         this.recordsPerPage = 10;
+        this.hasInitialSave = false;
         
         this.elements = {
             trackingStatus: document.getElementById('tracking-status'),
@@ -20,6 +21,7 @@ class LocationTracker {
             stopBtn: document.getElementById('stop-btn'),
             clearBtn: document.getElementById('clear-btn'),
             exportBtn: document.getElementById('export-btn'),
+            manualSaveBtn: document.getElementById('manual-save-btn'),
             totalRecords: document.getElementById('total-records'),
             firstRecord: document.getElementById('first-record'),
             lastRecord: document.getElementById('last-record'),
@@ -42,9 +44,15 @@ class LocationTracker {
             // Setup event listeners
             this.setupEventListeners();
             
-            // Setup geolocation callbacks
+            // Setup geolocation callbacks with auto-save
             this.geolocation.setCallbacks({
-                onLocationUpdate: this.onLocationUpdate.bind(this),
+                onLocationUpdate: (position) => {
+                    this.onLocationUpdate(position);
+                    // Auto-save every time we get a new position during tracking
+                    if (this.geolocation.isTracking) {
+                        this.saveCurrentLocation();
+                    }
+                },
                 onError: this.onGeolocationError.bind(this),
                 onStatusChange: this.onTrackingStatusChange.bind(this)
             });
@@ -68,20 +76,27 @@ class LocationTracker {
         this.elements.stopBtn.addEventListener('click', () => this.stopTracking());
         this.elements.clearBtn.addEventListener('click', () => this.clearData());
         this.elements.exportBtn.addEventListener('click', () => this.exportData());
+        this.elements.manualSaveBtn.addEventListener('click', () => this.saveCurrentLocation());
         this.elements.prevPage.addEventListener('click', () => this.previousPage());
         this.elements.nextPage.addEventListener('click', () => this.nextPage());
     }
 
     async startTracking() {
         try {
+            // Wait for database to be ready
+            await this.database.initPromise;
+            console.log('Database is ready');
+            
             // Request permission first
             await this.geolocation.requestPermission();
+            console.log('Geolocation permission granted');
             
-            // Start geolocation tracking
+            // Start geolocation tracking (callbacks already set in init)
             this.geolocation.startTracking();
             
-            // Start automatic saving every 30 seconds
+            // Start automatic saving every 30 seconds as backup
             this.intervalId = setInterval(() => {
+                console.log('30-second interval: saving current location');
                 this.saveCurrentLocation();
             }, 30000); // 30 seconds
 
@@ -104,19 +119,32 @@ class LocationTracker {
             this.intervalId = null;
         }
 
+        // Reset initial save flag
+        this.hasInitialSave = false;
+
         this.elements.startBtn.disabled = false;
         this.elements.stopBtn.disabled = true;
     }
 
     async saveCurrentLocation() {
         const position = this.geolocation.getLastPosition();
+        console.log('saveCurrentLocation called, position:', position);
+        
         if (position) {
             try {
-                await this.database.saveLocation(
+                console.log('Saving location:', {
+                    latitude: position.coords.latitude,
+                    longitude: position.coords.longitude,
+                    accuracy: position.coords.accuracy
+                });
+                
+                const result = await this.database.saveLocation(
                     position.coords.latitude,
                     position.coords.longitude,
                     position.coords.accuracy
                 );
+                
+                console.log('Location saved successfully:', result);
                 
                 await this.updateStatistics();
                 await this.loadLocationHistory();
@@ -125,6 +153,8 @@ class LocationTracker {
             } catch (error) {
                 console.error('Failed to save location:', error);
             }
+        } else {
+            console.log('No position available to save');
         }
     }
 
