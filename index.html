@@ -90,6 +90,76 @@
             </div>
         </div>
 
+        <!-- Chat Interface -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">AIチャット</h2>
+            <div class="mb-4">
+                <div id="chat-messages" class="border rounded-lg p-4 h-64 overflow-y-auto bg-gray-50 mb-4">
+                    <div class="text-gray-500 text-center">位置情報を元にAIと対話できます</div>
+                </div>
+                <div class="flex gap-2">
+                    <input 
+                        type="text" 
+                        id="chat-input" 
+                        placeholder="メッセージを入力..." 
+                        class="flex-1 border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                    <button 
+                        id="send-chat-btn" 
+                        class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition duration-200"
+                    >
+                        送信
+                    </button>
+                </div>
+            </div>
+            <div class="flex gap-2">
+                <button id="settings-btn" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition duration-200">
+                    設定
+                </button>
+                <div class="flex-1"></div>
+                <small class="text-gray-500 self-center">APIキー未設定</small>
+                <div id="api-status" class="w-3 h-3 bg-red-500 rounded-full self-center"></div>
+            </div>
+        </div>
+
+        <!-- Settings Modal -->
+        <div id="settings-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+            <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+                <h3 class="text-lg font-semibold mb-4">AI設定</h3>
+                <div class="mb-4">
+                    <label for="api-key-input" class="block text-sm font-medium text-gray-700 mb-2">
+                        API キー
+                    </label>
+                    <input 
+                        type="password" 
+                        id="api-key-input" 
+                        placeholder="AIサービスのAPIキーを入力" 
+                        class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                </div>
+                <div class="mb-4">
+                    <label for="api-provider-select" class="block text-sm font-medium text-gray-700 mb-2">
+                        AIプロバイダー
+                    </label>
+                    <select 
+                        id="api-provider-select" 
+                        class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                        <option value="openai">OpenAI</option>
+                        <option value="anthropic">Anthropic (Claude)</option>
+                    </select>
+                </div>
+                <div class="flex justify-end gap-2">
+                    <button id="cancel-settings-btn" class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded-lg">
+                        キャンセル
+                    </button>
+                    <button id="save-settings-btn" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">
+                        保存
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- Location History -->
         <div class="bg-white rounded-lg shadow-md p-6">
             <h2 class="text-xl font-semibold mb-4">位置情報履歴</h2>

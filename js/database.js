@@ -106,11 +106,13 @@ class Database {
     async getTotalCount() {
         await this.initPromise;
         
+        console.log('getTotalCount called');
         const stmt = this.db.prepare('SELECT COUNT(*) as count FROM locations');
         stmt.step();
         const result = stmt.getAsObject();
         stmt.free();
         
+        console.log('Total count result:', result.count);
         return result.count;
     }
 

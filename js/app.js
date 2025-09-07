@@ -1,10 +1,12 @@
 import Database from './database.js';
 import GeolocationService from './geolocation.js';
+import ChatManager from './chat.js';
 
 class LocationTracker {
     constructor() {
         this.database = new Database();
         this.geolocation = new GeolocationService();
+        this.chat = null;
         this.intervalId = null;
         this.currentPage = 1;
         this.recordsPerPage = 10;
@@ -49,15 +51,11 @@ class LocationTracker {
             this.geolocation.setCallbacks({
                 onLocationUpdate: (position) => {
                     this.onLocationUpdate(position);
-                    // Auto-save every time we get a new position during tracking
-                    if (this.geolocation.isTracking) {
+                    // Only save on first position update after starting tracking
+                    if (this.geolocation.isTracking && !this.hasReceivedFirstPosition) {
+                        this.hasReceivedFirstPosition = true;
                         this.saveCurrentLocation();
-                        
-                        // Save immediately on first position update after starting tracking
-                        if (!this.hasReceivedFirstPosition) {
-                            this.hasReceivedFirstPosition = true;
-                            console.log('First position received after starting tracking - saving immediately');
-                        }
+                        console.log('First position received after starting tracking - saving immediately');
                     }
                 },
                 onError: this.onGeolocationError.bind(this),
@@ -66,6 +64,9 @@ class LocationTracker {
 
             // Wait for database to initialize
             await this.database.initPromise;
+            
+            // Initialize chat manager
+            this.chat = new ChatManager(this.database);
             
             // Load initial data
             await this.updateStatistics();
@@ -83,7 +84,10 @@ class LocationTracker {
         this.elements.stopBtn.addEventListener('click', () => this.stopTracking());
         this.elements.clearBtn.addEventListener('click', () => this.clearData());
         this.elements.exportBtn.addEventListener('click', () => this.exportData());
-        this.elements.manualSaveBtn.addEventListener('click', () => this.saveCurrentLocation());
+        this.elements.manualSaveBtn.addEventListener('click', async () => {
+            console.log('Manual save button clicked');
+            await this.saveCurrentLocation();
+        });
         this.elements.prevPage.addEventListener('click', () => this.previousPage());
         this.elements.nextPage.addEventListener('click', () => this.nextPage());
     }
@@ -146,10 +150,23 @@ class LocationTracker {
     }
 
     async saveCurrentLocation() {
-        const position = this.geolocation.getLastPosition();
-        console.log('saveCurrentLocation called, position:', position);
+        let position = this.geolocation.getLastPosition();
+        console.log('saveCurrentLocation called, cached position:', position);
         
-        if (position) {
+        // If no cached position, try to get current position
+        if (!position) {
+            try {
+                console.log('No cached position, getting current position...');
+                position = await this.geolocation.getCurrentPosition();
+                console.log('Got fresh position:', position);
+            } catch (error) {
+                console.error('Failed to get current position:', error);
+                alert('位置情報の取得に失敗しました: ' + error.message);
+                return;
+            }
+        }
+        
+        if (position && position.coords) {
             try {
                 console.log('Saving location:', {
                     latitude: position.coords.latitude,
@@ -165,15 +182,19 @@ class LocationTracker {
                 
                 console.log('Location saved successfully:', result);
                 
+                console.log('Updating statistics and history...');
                 await this.updateStatistics();
                 await this.loadLocationHistory();
+                console.log('Statistics and history updated');
                 
                 this.elements.lastUpdate.textContent = GeolocationService.formatTimestamp(Date.now());
             } catch (error) {
                 console.error('Failed to save location:', error);
+                alert('位置情報の保存に失敗しました: ' + error.message);
             }
         } else {
-            console.log('No position available to save');
+            console.log('No valid position available to save');
+            alert('有効な位置情報がありません');
         }
     }
 
@@ -222,9 +243,16 @@ class LocationTracker {
 
     async updateStatistics() {
         try {
+            console.log('updateStatistics called');
             const totalCount = await this.database.getTotalCount();
             const firstRecord = await this.database.getFirstRecord();
             const lastRecord = await this.database.getLastRecord();
+
+            console.log('Statistics retrieved:', {
+                totalCount,
+                firstRecord,
+                lastRecord
+            });
 
             this.elements.totalRecords.textContent = totalCount;
             
@@ -235,6 +263,8 @@ class LocationTracker {
             this.elements.lastRecord.textContent = lastRecord
                 ? GeolocationService.formatTimestamp(lastRecord.timestamp)
                 : '---';
+                
+            console.log('Statistics UI updated');
         } catch (error) {
             console.error('Failed to update statistics:', error);
         }
